@@ -119,7 +119,7 @@ def scan_loss(args) :
             wall_mu = sclib.computeDwall_(position_mu)
             towall_mu = sclib.computeTowall_(position_mu, network.data[0][6:9])
             label_stack_mu, pred_stack_mu, nhit_mu = sclib._stack_hit_event_display(network, args.flip_top_bottom)
-            energy_scanlist_mu, loss_scanlist_mu, orig_Emu, orig_Lossmu = sclib._scan_lossvE(network, args.flip_top_bottom)
+            energy_scanlist_mu, loss_scanlist_mu, orig_Emu, orig_Lossmu = sclib._scan_lossvE(network)
 
             splELoss_mu = InterpolatedUnivariateSpline(energy_scanlist_mu, loss_scanlist_mu, k=4)       
             crptsELoss_mu = splELoss_mu.derivative().roots()
@@ -141,7 +141,7 @@ def scan_loss(args) :
                 sclib._save_scan_curve("Muon", mu_plot_dict)
                 plt.close(figScan_mu)
             
-            pid_mu, energy_mu = sclib._scan_lossvPID(network, minLoss_mu, args.flip_top_bottom)
+            pid_mu, energy_mu = sclib._scan_lossvPID(network, minLoss_mu)
 
             ######### electron event ############
             network.fillData(data_e)
@@ -154,7 +154,7 @@ def scan_loss(args) :
             wall_e = sclib.computeDwall_(position_e)
             towall_e = sclib.computeTowall_(position_e, network.data[0][6:9])
 
-            energy_scanlist_e, loss_scanlist_e, orig_Ee, orig_Losse = sclib._scan_lossvE(network, args.flip_top_bottom)
+            energy_scanlist_e, loss_scanlist_e, orig_Ee, orig_Losse = sclib._scan_lossvE(network)
 
             splELoss_e = InterpolatedUnivariateSpline(energy_scanlist_e, loss_scanlist_e, k=4) 
             crptsELoss_e = splELoss_e.derivative().roots()
@@ -176,7 +176,7 @@ def scan_loss(args) :
                 plt.close(figScan_e)
 
 
-            pid_e, energy_e = sclib._scan_lossvPID(network, minLoss_e, args.flip_top_bottom)
+            pid_e, energy_e = sclib._scan_lossvPID(network, minLoss_e)
 
             ######## write to output ##########            
             event_used += 1
@@ -221,7 +221,7 @@ def scan_loss(args) :
 if __name__ == "__main__" :
 
     parser = argparse.ArgumentParser(description='Application to scan Water Cherenkov generative neural network loss function.')
-    parser.add_argument('-b', '--begin_fraction', type = float, help = "Starting fraction of data loading", default = 0.0, required = False)
+    parser.add_argument('-b', '--begin_fraction', type = float, help = "Starting fraction of data loading", default = 0.75, required = False)
     parser.add_argument('-i', '--input_dir', type = str, help = "Input directory of cnn weights", default = "./", required = False)
     parser.add_argument('-f', '--flip_top_bottom', type = bool, help = "Flip top and bottom caps (to deal with bug in training)", default = False, required = False)
     parser.add_argument('-j', '--num_workers', type = int, help = "Number of CPUs for loading data", default = 8, required = False)
