@@ -94,28 +94,28 @@ class model(torch.nn.Module) :
 
         self._upconvs_barrel = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(64, 64, 4, 2),  torch.nn.ReLU(),  # 16 x 40
-            torch.nn.Conv2d(64, 64, 3), torch.nn.ReLU(),               # 14 x 38 
-            torch.nn.ConvTranspose2d(64, 32, 4, 2), torch.nn.ReLU(),   # 30 x 78
-            torch.nn.Conv2d(32, 32, 3),  torch.nn.ReLU(),              # 28 x 76 
-            torch.nn.ConvTranspose2d(32, 32, 4, 2), torch.nn.ReLU(),   # 58 x 154
-            torch.nn.Conv2d(32, 1+self.N_GAUS*self.n_parameters_per_gaus, 3)                         # 56 x 152
+            torch.nn.Conv2d(64, 64, 3), torch.nn.ReLU(),               # 14 x 38
+            torch.nn.ConvTranspose2d(64, max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 4, 2), torch.nn.ReLU(),   # 30 x 78
+            torch.nn.Conv2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 3),  torch.nn.ReLU(), # 28 x 76 
+            torch.nn.ConvTranspose2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 4, 2), torch.nn.ReLU(), # 58 x 154
+            torch.nn.Conv2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 1+self.N_GAUS*self.n_parameters_per_gaus, 3) # 56 x 152
         )
         
         self._upconvs_top = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(64, 64, 4, 2),  torch.nn.ReLU(),  # 14 x 14
             torch.nn.Conv2d(64, 64, 3), torch.nn.ReLU(),               # 12 x 12
-            torch.nn.ConvTranspose2d(64, 32, 4, 2), torch.nn.ReLU(),   # 26 x 26 
-            torch.nn.Conv2d(32, 32, 3),  torch.nn.ReLU(),              # 24 x 24
-            torch.nn.ConvTranspose2d(32, 32, 4, 2), torch.nn.ReLU(),   # 50 x 50
-            torch.nn.Conv2d(32, 1+self.N_GAUS*self.n_parameters_per_gaus, 3) # 48 x 48
+            torch.nn.ConvTranspose2d(64, max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 4, 2), torch.nn.ReLU(),   # 26 x 26 
+            torch.nn.Conv2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 3),  torch.nn.ReLU(),  # 24 x 24
+            torch.nn.ConvTranspose2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 4, 2), torch.nn.ReLU(),   # 50 x 50
+            torch.nn.Conv2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 1+self.N_GAUS*self.n_parameters_per_gaus, 3) # 48 x 48
         )
         self._upconvs_bottom = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(64, 64, 4, 2),  torch.nn.ReLU(),  # 14 x 14
             torch.nn.Conv2d(64, 64, 3), torch.nn.ReLU(),               # 12 x 12
-            torch.nn.ConvTranspose2d(64, 32, 4, 2), torch.nn.ReLU(),   # 26 x 26
-            torch.nn.Conv2d(32, 32, 3),  torch.nn.ReLU(),              # 24 x 24
-            torch.nn.ConvTranspose2d(32, 32, 4, 2), torch.nn.ReLU(),   # 50 x 50
-            torch.nn.Conv2d(32, 1+self.N_GAUS*self.n_parameters_per_gaus, 3) # 48 x 48
+            torch.nn.ConvTranspose2d(64, max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 4, 2), torch.nn.ReLU(),   # 26 x 26
+            torch.nn.Conv2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 3),  torch.nn.ReLU(),  # 24 x 24
+            torch.nn.ConvTranspose2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 4, 2), torch.nn.ReLU(),   # 50 x 50
+            torch.nn.Conv2d(max([32, 1+self.N_GAUS*self.n_parameters_per_gaus]), 1+self.N_GAUS*self.n_parameters_per_gaus, 3) # 48 x 48
         )
         self._tanh = torch.nn.Tanh()
         
@@ -218,7 +218,7 @@ class model(torch.nn.Module) :
             logmu = torch.stack( [ prediction[:, i*(self.n_parameters_per_gaus - 1) + 2] for i in range(self.N_GAUS) ], dim = 1 )
             mu = torch.exp(logmu)
                             
-            qt_loss = hitMask.sum()*(1/2.)*np.log(2*np.pi) # Constant term
+            qt_loss = hitMask.sum()*(1/2.)*torch.log(torch.tensor(2*np.pi)) # Constant term
             #charge component
             nll_qt = torch.log(coefficients) - 1/2.*logvar - 1/2.*(charge_n - mu)**2/var
             
@@ -255,12 +255,12 @@ class model(torch.nn.Module) :
             a12 = torch.where((mask_for_posdef&(a12_raw>0))|(~mask_for_posdef&(a12_raw<0)), -a12_raw, a12_raw)
             
             if hitMask.sum() < 1:
-                corr_loss = 0
+                corr_loss = torch.tensor(0., dtype=torch.float, device = self.device)
             else:    
-                corr_loss = hitMask.sum()*np.log(2*np.pi) # Constant term
+                corr_loss = hitMask.sum()*torch.log(torch.tensor(2*np.pi)) # Constant term
                 nll_corr = torch.log(coefficients) + loga11 + loga22 - 1/2.*((mu_t_diff*a11)**2 + mu_diff**2*(a22**2 + a12**2) + 2*mu_t_diff*mu_diff*a11*a12)
                 corr_loss += - torch.logsumexp(nll_corr, dim = 1)[hitMask].sum()
-            ret = {"hit_loss" : hit_loss, "correlated_loss" : corr_loss}
+            ret = {"hit_loss" : hit_loss, "qt_loss" : corr_loss}
             
         return ret
 
