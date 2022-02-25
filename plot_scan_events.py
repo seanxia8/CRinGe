@@ -126,9 +126,9 @@ def plot_scan_events(args):
     axe[1].tick_params(axis="x", labelsize=8)
     axe[1].tick_params(axis="y", labelsize=8)    
     axmu[1].set_xlabel("Energy (MeV)")
-    axmu[1].set_ylabel("Loss")
+    axmu[1].set_ylabel(r'$\delta$Loss')
     axe[1].set_xlabel("Energy (MeV)")
-    axe[1].set_ylabel("Loss")
+    axe[1].set_ylabel(r'$\delta$Loss')
     
     #create a big nested dictionary
     for ig in range(args.npeak_max):
@@ -144,6 +144,7 @@ def plot_scan_events(args):
             c_id = 0
             for curve in curves:
                 #old syntax
+                '''
                 if curve[0:3] == ['Muon', 'scan', 'energy']:
                     c_id += 1
 
@@ -161,23 +162,28 @@ def plot_scan_events(args):
                     break
         
                 '''
-                if curve[0:4] == [str(c_id), 'Muon', 'scan', 'energy']:                
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_energy'].append(float(curve[4:]))
-                elif curve[0:4] == [str(c_id), 'Muon', 'scan', 'loss']:
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_loss'].append(float(curve[4:]))
-                elif curve[0:6] == [str(c_id), 'Muon', 'true', 'energy', 'and', 'loss']:
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'].append(float(curve[-2]))
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_loss'].append(float(curve[-1]))                    
-                c_id = len(all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_loss'])+1
-                '''
+                c_id = int(curve[0])
+                if c_id == args.event_id:
+                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['ID'].append(c_id)
+                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_energy'].append(curve[4:])
+                    curve = next(curves)
+                    if curve[1:4] == ['Muon', 'scan', 'loss']:
+                        all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_loss'].append(curve[4:])
+                    curve = next(curves)
+                    if curve[1:6] == ['Muon', 'true', 'energy', 'and', 'loss']:
+                        all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'].append(float(curve[-2]))
+                        all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_loss'].append(float(curve[-1]))
+
+                    break
+                
         with open(args.input_dir+'_'+str(ig+1)+'/'+args.model+'_e_LLH_curves_'+str(args.n_scan)+'_events.txt') as file:
             curves = filter(None, (curve.rstrip('\n').split() for curve in file))
             c_id = 0
             for curve in curves:
                 #old syntax
-                if curve[0:3] == ['Electron', 'scan', 'energy']:
+                '''
+                if curve[1:4] == ['Electron', 'scan', 'energy']:
                     c_id += 1
-
                 if c_id == args.event_id:
                     all_in_one['NPeak{:d}'.format(ig+1)]['electron']['ID'].append(c_id)
                     all_in_one['NPeak{:d}'.format(ig+1)]['electron']['scan_energy'].append(curve[3:])
@@ -192,29 +198,35 @@ def plot_scan_events(args):
                     break
         
                 '''
-                if curve[0:4] == [str(c_id), 'Muon', 'scan', 'energy']:                
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_energy'].append(float(curve[4:]))
-                elif curve[0:4] == [str(c_id), 'Muon', 'scan', 'loss']:
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_loss'].append(float(curve[4:]))
-                elif curve[0:6] == [str(c_id), 'Muon', 'true', 'energy', 'and', 'loss']:
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'].append(float(curve[-2]))
-                    all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_loss'].append(float(curve[-1]))                    
-                c_id = len(all_in_one['NPeak{:d}'.format(ig+1)]['muon']['scan_loss'])+1
-                '''
+                c_id = int(curve[0])
+                if c_id == args.event_id:                    
+                    all_in_one['NPeak{:d}'.format(ig+1)]['electron']['ID'].append(c_id)
+                    all_in_one['NPeak{:d}'.format(ig+1)]['electron']['scan_energy'].append(curve[4:])
+                    curve = next(curves)
+                    if curve[1:4] == ['Electron', 'scan', 'loss']:
+                        all_in_one['NPeak{:d}'.format(ig+1)]['electron']['scan_loss'].append(curve[4:])
+                    curve = next(curves)
+                    if curve[1:6] == ['Electron', 'true', 'energy', 'and', 'loss']:
+                        all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_energy'].append(float(curve[-2]))
+                        all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_loss'].append(float(curve[-1]))
+
+                    break
         
         #print(all_in_one)
         #print('Size of the big dictionary {:d} peak is '.format(ig+1), sys.getsizeof(all_in_one['NPeak{:d}'.format(ig+1)]))
         sclib._stack_scan_curves(fig, axmu, all_in_one['NPeak{:d}'.format(ig+1)]['muon'], ig)
         sclib._stack_scan_curves(fig, axe, all_in_one['NPeak{:d}'.format(ig+1)]['electron'], ig)
 
-    plt.figtext(0.5,0.98, r"(a) {:.2f} MeV $\mu^-$ event".format(all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'][0]), va="center", ha="center", size=10)
-    plt.figtext(0.5,0.5, r"(b) {:.2f} MeV $e^-$ event".format(all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_energy'][0]), va="center", ha="center", size=10)
+    plt.figtext(0.5,0.98, r"{:.2f} MeV $\mu^-$ event".format(all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'][0]), va="center", ha="center", size=10)
+    plt.figtext(0.5,0.5, r"{:.2f} MeV $e^-$ event".format(all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_energy'][0]), va="center", ha="center", size=10)
 
     axmu[1].axvline(x=all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'][0], color='grey', linewidth = 1, linestyle='-', alpha=0.5, label = "True Energy")
-    axmu[1].legend(loc='upper right', framealpha=1, facecolor='w', prop={'size': 5})
+    axmu[1].set_xlim(0.75*all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'][0],1.25*all_in_one['NPeak{:d}'.format(ig+1)]['muon']['orig_energy'][0])
+    axmu[1].legend(loc='lower center', framealpha=1, facecolor='w', prop={'size': 7}, ncol=5)
     axe[1].axvline(x=all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_energy'][0], color='grey', linewidth = 1, linestyle='-', alpha=0.5, label = "True Energy")
-    axe[1].legend(loc='upper right', framealpha=1, facecolor='w', prop={'size': 5})
-
+    axe[1].set_xlim(0.75*all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_energy'][0],1.25*all_in_one['NPeak{:d}'.format(ig+1)]['electron']['orig_energy'][0])
+    axe[1].legend(loc='lower center', framealpha=1, facecolor='w', prop={'size': 7}, ncol=5)
+    
     fig.tight_layout()
     pp = PdfPages(args.output_dir+'/SK_MultiGaus_scancurves_eventdisp_eventID_'+str(args.event_id)+'_NGaus_1_to_'+str(args.npeak_max)+'_time_'+str(args.use_time)+'_corr_'+str(args.use_corr)+'_'+str(args.n_scan_to_use)+'_events.pdf')
     pp.savefig(fig)
