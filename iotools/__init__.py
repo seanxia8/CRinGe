@@ -1,2 +1,3 @@
 from . import hkdataset
-from .loader_factory import loader_factory
+from . import skdataset
+from .loader_factory import loader_factory, loader_factory_sk
