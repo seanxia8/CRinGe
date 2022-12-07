@@ -73,27 +73,28 @@ class H5DatasetSK(Dataset):
         h5_dict = {}            
         #print(idx, fh['nhit_barrel'][entry_index][0], fh['hit_index_barrel'][entry_index][0])
         for key in self._keys:
-            h5_dict.update({key: []})
+            #h5_dict.update({key: []})
             if key == 'event_data_barrel':
                 if (fh['nhit_barrel'][entry_index][0]) > 0:
-                    h5_dict[key] = fh[key][fh['hit_index_barrel'][entry_index][0]:fh['hit_index_barrel'][entry_index][0]+fh['nhit_barrel'][entry_index][0]]
+                    h5_dict.update({key: fh[key][fh['hit_index_barrel'][entry_index][0]:fh['hit_index_barrel'][entry_index][0]+fh['nhit_barrel'][entry_index][0]].tolist()})
             elif key == 'event_data_top':
-                if (fh['nhit_top'][entry_index][0]) > 0:                    
-                    h5_dict[key] = fh[key][fh['hit_index_top'][entry_index][0]:fh['hit_index_top'][entry_index][0]+fh['nhit_top'][entry_index][0]]
+                if (fh['nhit_top'][entry_index]) > 0:                    
+                    h5_dict.update({key: fh[key][fh['hit_index_top'][entry_index][0]:fh['hit_index_top'][entry_index][0]+fh['nhit_top'][entry_index][0]][0].tolist()})
             elif key == 'event_data_bottom':
                 if (fh['nhit_bottom'][entry_index][0]) > 0:                                
-                    h5_dict[key] = fh[key][fh['hit_index_bottom'][entry_index][0]:fh['hit_index_bottom'][entry_index][0]+fh['nhit_bottom'][entry_index][0]]
+                    h5_dict.update({key: fh[key][fh['hit_index_bottom'][entry_index][0]:fh['hit_index_bottom'][entry_index][0]+fh['nhit_bottom'][entry_index][0]].tolist()})
             else:
-                h5_dict[key] = fh[key][entry_index]
+                h5_dict.update({key: fh[key][entry_index][0]})
                 
-        h5_dict.update({'Input_index': [idx]})
-        h5_dict.update({'Entry_index': [entry_index]})
+        h5_dict.update({'Input_index': idx})
+        h5_dict.update({'Entry_index': entry_index})
         #print(h5_dict)
         return h5_dict
 
 def Collate(batch):
 
     dict_keys = list(batch[0].keys())
+    #print(dict_keys)
     #barrel_index = dict_keys.index('event_data_barrel')
     #top_index = dict_keys.index('event_data_top')
     #bottom_index = dict_keys.index('event_data_bottom')
@@ -101,9 +102,10 @@ def Collate(batch):
     result = [[] for i in range(len(dict_keys))]    
     for i,data in enumerate(batch):
         for j in range(len(dict_keys)):
-            result[j].append(np.array(data[dict_keys[j]]))
-
+            result[j].append(data[dict_keys[j]])
+ 
     #for i in range(len(result[barrel_index])):
     #    print(result[barrel_index][i].shape, result[top_index][i].shape, result[bottom_index][i].shape)
-
+    
     return(result)
+    # [ label, nhit_barrel, hit_index_barrel, event_data_barrel, nhit_top, hit_index_top, event_data_top, nhit_bottom, hit_index_bottom, event_data_bottom, position, direction, energy, input_index, entry_index ]
