@@ -79,7 +79,7 @@ class H5DatasetSK(Dataset):
                     h5_dict.update({key: fh[key][fh['hit_index_barrel'][entry_index][0]:fh['hit_index_barrel'][entry_index][0]+fh['nhit_barrel'][entry_index][0]].tolist()})
             elif key == 'event_data_top':
                 if (fh['nhit_top'][entry_index]) > 0:                    
-                    h5_dict.update({key: fh[key][fh['hit_index_top'][entry_index][0]:fh['hit_index_top'][entry_index][0]+fh['nhit_top'][entry_index][0]][0].tolist()})
+                    h5_dict.update({key: fh[key][fh['hit_index_top'][entry_index][0]:fh['hit_index_top'][entry_index][0]+fh['nhit_top'][entry_index][0]].tolist()})
             elif key == 'event_data_bottom':
                 if (fh['nhit_bottom'][entry_index][0]) > 0:                                
                     h5_dict.update({key: fh[key][fh['hit_index_bottom'][entry_index][0]:fh['hit_index_bottom'][entry_index][0]+fh['nhit_bottom'][entry_index][0]].tolist()})
